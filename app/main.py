@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import random
-import notification
+import webbrowser
 import keychain
 import os
 import requests
@@ -9,7 +9,7 @@ import requests
 
 AUTH_URL = 'https://www.reddit.com/api/v1/access_token'
 BASE_URL = 'https://oauth.reddit.com'
-BASE_OUTPUT_URL = 'reddit://www.reddit.com'
+BASE_OUTPUT_URL = 'reddit://www.reddit.com'  # reddit:// is the url scheme to open things in reddit.
 REDDIT_USERNAME = 'qckpckt'
 REDDIT_CLIENT_ID = '34DJnXRByNr8UA'  # client id of script installed on my reddit account.
 REDDIT_USER_PASSWORD = keychain.get_password('reddit.com', REDDIT_USERNAME)
@@ -61,16 +61,16 @@ def transform(posts):
     return [post for post in parsed if post]
 
 
-def create_notification(transformed, subreddit):
-    lucky_number = random.randint(0, (len(transformed) - 1))
-    post = transformed[lucky_number]
-    title = f'Here is a random hot post from /r{subreddit}: {post["Title"]}'
-    notification.schedule(
-        title,
-        0,
-        '',
-        post['Link'])
+def get_random_number(transformed):
+    return random.randint(0, (len(transformed) - 1))  # otherwise we risk getting an index out of range error
+    
 
+def run(transformed, subreddit):
+    choice = transformed[get_random_number(transformed)]
+    title = f'Here is a random hot post from /r{subreddit}: {choice["Title"]}'
+    print(title)
+    webbrowser.open(choice['Link'])
+    
 
 def main():
     print('getting access token')
@@ -79,7 +79,7 @@ def main():
     print(f'getting hot posts from /r/{subreddit}')
     posts = get_hot(subreddit, access_token)
     transformed = transform(posts)
-    create_notification(transformed, subreddit)
+    run(transformed, subreddit)
 
 
 if __name__ == '__main__':
